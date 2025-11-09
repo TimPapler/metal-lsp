@@ -1,5 +1,10 @@
 # Metal LSP
 
+[![CI](https://github.com/TimPapler/metal-lsp/actions/workflows/ci.yml/badge.svg)](https://github.com/TimPapler/metal-lsp/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Swift](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
+[![Platform](https://img.shields.io/badge/Platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+
 A Language Server Protocol (LSP) implementation for Apple's Metal Shading Language, written in Swift.
 
 ## Features
@@ -194,6 +199,27 @@ Type these prefixes and trigger completion:
 - `text` → suggests texture types like `texture2d`, `texture3d`, etc.
 
 ## Development
+
+### Project Structure
+
+```
+metal-lsp/
+├── Sources/
+│   ├── MetalLSP/              # Main executable
+│   │   └── main.swift
+│   ├── MetalLanguageServer/   # LSP implementation
+│   │   ├── JSONRPC.swift
+│   │   ├── LSPTypes.swift
+│   │   ├── MessageTransport.swift
+│   │   ├── DocumentManager.swift
+│   │   └── LanguageServer.swift
+│   └── MetalCore/             # Metal-specific functionality
+│       ├── MetalCompiler.swift
+│       └── MetalBuiltins.swift
+├── Tests/
+├── Package.swift
+└── README.md
+```
 
 ### Building for Development
 
