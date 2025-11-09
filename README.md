@@ -200,27 +200,6 @@ Type these prefixes and trigger completion:
 
 ## Development
 
-### Project Structure
-
-```
-metal-lsp/
-├── Sources/
-│   ├── MetalLSP/              # Main executable
-│   │   └── main.swift
-│   ├── MetalLanguageServer/   # LSP implementation
-│   │   ├── JSONRPC.swift
-│   │   ├── LSPTypes.swift
-│   │   ├── MessageTransport.swift
-│   │   ├── DocumentManager.swift
-│   │   └── LanguageServer.swift
-│   └── MetalCore/             # Metal-specific functionality
-│       ├── MetalCompiler.swift
-│       └── MetalBuiltins.swift
-├── Tests/
-├── Package.swift
-└── README.md
-```
-
 ### Building for Development
 
 ```bash
@@ -281,10 +260,6 @@ Future enhancements:
 - [ ] Incremental compilation for better performance
 - [ ] Context-aware completion (filter by scope)
 - [ ] VS Code extension
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
