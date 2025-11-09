@@ -195,27 +195,6 @@ Type these prefixes and trigger completion:
 
 ## Development
 
-### Project Structure
-
-```
-metal-lsp/
-├── Sources/
-│   ├── MetalLSP/              # Main executable
-│   │   └── main.swift
-│   ├── MetalLanguageServer/   # LSP implementation
-│   │   ├── JSONRPC.swift
-│   │   ├── LSPTypes.swift
-│   │   ├── MessageTransport.swift
-│   │   ├── DocumentManager.swift
-│   │   └── LanguageServer.swift
-│   └── MetalCore/             # Metal-specific functionality
-│       ├── MetalCompiler.swift
-│       └── MetalBuiltins.swift
-├── Tests/
-├── Package.swift
-└── README.md
-```
-
 ### Building for Development
 
 ```bash
