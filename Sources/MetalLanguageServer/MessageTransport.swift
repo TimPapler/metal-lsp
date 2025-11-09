@@ -57,8 +57,8 @@ class MessageTransport {
             }
         }
 
-        try output.write(contentsOf: headerData)
-        try output.write(contentsOf: data)
+        output.write(headerData)
+        output.write(data)
     }
 
     /// Write an encodable object as JSON

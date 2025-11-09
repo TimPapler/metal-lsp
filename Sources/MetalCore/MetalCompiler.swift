@@ -115,7 +115,7 @@ public class MetalCompiler {
         let severityStr = (line as NSString).substring(with: match.range(at: 3))
         let message = (line as NSString).substring(with: match.range(at: 4))
 
-        let severity: DiagnosticSeverity
+        let severity: MetalDiagnosticSeverity
         switch severityStr {
         case "error":
             severity = .error
@@ -138,10 +138,10 @@ public class MetalCompiler {
 public struct MetalDiagnostic {
     public let line: Int
     public let column: Int
-    public let severity: DiagnosticSeverity
+    public let severity: MetalDiagnosticSeverity
     public let message: String
 
-    public init(line: Int, column: Int, severity: DiagnosticSeverity, message: String) {
+    public init(line: Int, column: Int, severity: MetalDiagnosticSeverity, message: String) {
         self.line = line
         self.column = column
         self.severity = severity
@@ -149,7 +149,7 @@ public struct MetalDiagnostic {
     }
 }
 
-public enum DiagnosticSeverity {
+public enum MetalDiagnosticSeverity {
     case error
     case warning
     case information
