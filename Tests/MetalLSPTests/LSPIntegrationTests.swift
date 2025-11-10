@@ -469,7 +469,7 @@ struct LSPIntegrationTests {
             "params": NSNull()
         ], to: inputPipe)
 
-        guard let response = try readMessage(from: outputPipe) else {
+        guard let response = try readResponse(withId: 2, from: outputPipe) else {
             Issue.record("No shutdown response")
             return
         }
