@@ -65,15 +65,17 @@ struct LSPIntegrationTests {
     }
 
     deinit {
-      // Close pipes first to prevent SIGPIPE
+      // Terminate process first
+      if process.isRunning {
+        process.terminate()
+        // Wait briefly for process to exit
+        Thread.sleep(forTimeInterval: 0.05)
+      }
+
+      // Then close pipes (process already dead, no SIGPIPE risk)
       try? inputPipe.fileHandleForWriting.close()
       try? outputPipe.fileHandleForReading.close()
       try? errorPipe.fileHandleForReading.close()
-
-      // Then terminate process
-      if process.isRunning {
-        process.terminate()
-      }
     }
   }
 
