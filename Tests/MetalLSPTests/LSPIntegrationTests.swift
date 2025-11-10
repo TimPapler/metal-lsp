@@ -85,6 +85,28 @@ struct LSPIntegrationTests {
         return try JSONSerialization.jsonObject(with: contentData) as? [String: Any]
     }
 
+    func readResponse(withId expectedId: Int, from outputPipe: Pipe, timeout: TimeInterval = 5.0) throws -> [String: Any]? {
+        let startTime = Date()
+
+        while Date().timeIntervalSince(startTime) < timeout {
+            guard let message = try readMessage(from: outputPipe, timeout: timeout - Date().timeIntervalSince(startTime)) else {
+                return nil
+            }
+
+            // Skip notifications (no id field)
+            if message["id"] == nil {
+                continue
+            }
+
+            // Check if this is the response we're looking for
+            if let id = message["id"] as? Int, id == expectedId {
+                return message
+            }
+        }
+
+        return nil
+    }
+
     // MARK: - Tests
 
     @Test("Server initializes correctly")
@@ -195,7 +217,7 @@ struct LSPIntegrationTests {
             ]
         ], to: inputPipe)
 
-        guard let response = try readMessage(from: outputPipe) else {
+        guard let response = try readResponse(withId: 2, from: outputPipe) else {
             Issue.record("No completion response")
             return
         }
