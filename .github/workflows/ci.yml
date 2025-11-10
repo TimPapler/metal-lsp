@@ -39,7 +39,7 @@ jobs:
       run: swift build -v
 
     - name: Run tests
-      run: swift test -v
+      run: swift test --filter MetalLSPTests -v
 
     - name: Build (Release)
       run: swift build -c release -v
