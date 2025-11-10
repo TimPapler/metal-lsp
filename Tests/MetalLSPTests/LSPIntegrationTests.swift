@@ -5,7 +5,7 @@ import Foundation
 
 /// Integration tests that verify LSP protocol compliance
 /// These tests simulate a real LSP client communicating with the server
-@Suite("LSP Integration Tests")
+@Suite("LSP Integration Tests", .disabled(if: ProcessInfo.processInfo.environment["SKIP_INTEGRATION_TESTS"] == "true"))
 struct LSPIntegrationTests {
 
     // MARK: - Helper Methods

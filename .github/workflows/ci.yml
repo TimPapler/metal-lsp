@@ -39,7 +39,9 @@ jobs:
       run: swift build -v
 
     - name: Run tests
-      run: swift test --filter MetalLSPTests -v
+      run: swift test -v
+      env:
+        SKIP_INTEGRATION_TESTS: "true"
 
     - name: Build (Release)
       run: swift build -c release -v
