@@ -484,6 +484,10 @@ struct LSPIntegrationTests {
             "params": NSNull()
         ], to: inputPipe)
 
+        // Close pipes to avoid SIGPIPE
+        try? inputPipe.fileHandleForWriting.close()
+        try? outputPipe.fileHandleForReading.close()
+
         // Wait for process to exit with timeout
         let deadline = Date().addingTimeInterval(2.0)
         while process.isRunning && Date() < deadline {
