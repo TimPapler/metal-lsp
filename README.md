@@ -259,7 +259,6 @@ Future enhancements:
 - [ ] Code formatting
 - [ ] Incremental compilation for better performance
 - [ ] Context-aware completion (filter by scope)
-- [ ] VS Code extension
 
 ## License
 
