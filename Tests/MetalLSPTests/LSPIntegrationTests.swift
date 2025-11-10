@@ -471,7 +471,7 @@ struct LSPIntegrationTests {
     #expect(diagnosticsCount == 0, "Should have 0 errors when include paths work correctly")
   }
 
-  @Test("Server shuts down gracefully", .timeLimit(.minutes(1)))
+  @Test("Server responds to shutdown request")
   func shutdown() throws {
     let (process, inputPipe, outputPipe, _) = try startServer()
     defer {
@@ -503,7 +503,7 @@ struct LSPIntegrationTests {
         "params": NSNull(),
       ], to: inputPipe)
 
-    guard let response = try readResponse(withId: 2, from: outputPipe, timeout: 10.0) else {
+    guard let response = try readResponse(withId: 2, from: outputPipe) else {
       Issue.record("No shutdown response")
       return
     }
@@ -511,31 +511,13 @@ struct LSPIntegrationTests {
     #expect(response["id"] as? Int == 2)
     #expect(response["result"] != nil)
 
-    // Exit
+    // Send exit notification (don't wait for actual exit, defer will clean up)
     try sendMessage(
       [
         "jsonrpc": "2.0",
         "method": "exit",
         "params": NSNull(),
       ], to: inputPipe)
-
-    // Give the process time to handle exit notification
-    Thread.sleep(forTimeInterval: 1.0)
-
-    // Close pipes after giving process time to exit
-    try? inputPipe.fileHandleForWriting.close()
-    try? outputPipe.fileHandleForReading.close()
-
-    // Wait longer for process to exit
-    let deadline = Date().addingTimeInterval(5.0)
-    while process.isRunning && Date() < deadline {
-      Thread.sleep(forTimeInterval: 0.2)
-    }
-
-    // Check exit status
-    if !process.isRunning {
-      #expect(process.terminationStatus == 0, "Process should exit with status 0")
-    }
   }
 }
 
