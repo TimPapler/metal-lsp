@@ -237,7 +237,7 @@ public class MetalSpecParser {
 
     // Look at the next few lines for continuation or description
     var foundDescription = !description.isEmpty
-    var startOffset = foundDescription ? 1 : signatureLineCount
+    let startOffset = foundDescription ? 1 : signatureLineCount
 
     for offset in startOffset...15 {
       guard index + offset < lines.count else { break }
