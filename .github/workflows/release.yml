@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release:
+    name: Build Release Binary
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Show Swift version
+      run: swift --version
+
+    - name: Build release binary
+      run: swift build -c release
+
+    - name: Create distribution archive
+      run: |
+        cd .build/release
+        tar -czf metal-lsp-macos.tar.gz metal-lsp
+        shasum -a 256 metal-lsp-macos.tar.gz > metal-lsp-macos.tar.gz.sha256
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          .build/release/metal-lsp-macos.tar.gz
+          .build/release/metal-lsp-macos.tar.gz.sha256
+        body: |
+          ## Metal LSP Server ${{ github.ref_name }}
+
+          ### Installation
+
+          ```bash
+          # Download and extract
+          curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/metal-lsp-macos.tar.gz -o metal-lsp-macos.tar.gz
+          tar -xzf metal-lsp-macos.tar.gz
+
+          # Move to PATH
+          sudo mv metal-lsp /usr/local/bin/
+          sudo chmod +x /usr/local/bin/metal-lsp
+
+          # Verify installation
+          metal-lsp --version
+          ```
+
+          ### Requirements
+          - macOS 13 or later
+          - Xcode Command Line Tools
+
+          ### Verification
+          ```bash
+          shasum -a 256 -c metal-lsp-macos.tar.gz.sha256
+          ```
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,10 @@
 # Metal LSP
 
+[![CI](https://github.com/TimPapler/metal-lsp/actions/workflows/ci.yml/badge.svg)](https://github.com/TimPapler/metal-lsp/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Swift](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
+[![Platform](https://img.shields.io/badge/Platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+
 A Language Server Protocol (LSP) implementation for Apple's Metal Shading Language, written in Swift.
 
 ## Features
@@ -255,10 +260,6 @@ Future enhancements:
 - [ ] Incremental compilation for better performance
 - [ ] Context-aware completion (filter by scope)
 - [ ] VS Code extension
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
