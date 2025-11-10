@@ -34,15 +34,32 @@ public class MetalCompiler {
             )]
         }
 
+        // Extract include paths from the source file's directory
+        var includePaths: [String] = []
+        if let fileURL = URL(string: uri),
+           fileURL.isFileURL {
+            // Add the file's directory
+            let fileDir = fileURL.deletingLastPathComponent().path
+            includePaths.append(fileDir)
+
+            // Add parent directory for relative imports like "../Common.h"
+            let parentDir = fileURL.deletingLastPathComponent().deletingLastPathComponent().path
+            includePaths.append(parentDir)
+        }
+
         // Run Metal compiler
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = [
-            "metal",
-            "-c",
-            tempFile.path,
-            "-o", temporaryDirectory.appendingPathComponent("shader.air").path
-        ]
+
+        var arguments = ["metal", "-c", tempFile.path, "-o", temporaryDirectory.appendingPathComponent("shader.air").path]
+
+        // Add include directories
+        for includePath in includePaths {
+            arguments.append("-I")
+            arguments.append(includePath)
+        }
+
+        process.arguments = arguments
 
         let outputPipe = Pipe()
         let errorPipe = Pipe()

@@ -305,6 +305,122 @@ struct LSPIntegrationTests {
         #expect(foundDiagnostics, "Should receive diagnostics for error code")
     }
 
+    @Test("Diagnostics work with include files")
+    func diagnosticsWithIncludes() throws {
+        let (process, inputPipe, outputPipe, _) = try startServer()
+        defer {
+            if process.isRunning {
+                process.terminate()
+            }
+        }
+
+        // Initialize
+        try sendMessage([
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": [
+                "processId": NSNull(),
+                "rootUri": "file:///tmp/test",
+                "capabilities": [:]
+            ]
+        ], to: inputPipe)
+        _ = try readMessage(from: outputPipe)
+
+        try sendMessage([
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": [:]
+        ], to: inputPipe)
+
+        // Create a temporary directory structure with header files
+        let tempDir = FileManager.default.temporaryDirectory
+        let projectDir = tempDir.appendingPathComponent("test_project_\(UUID().uuidString)")
+        let shadersDir = projectDir.appendingPathComponent("Shaders")
+
+        try FileManager.default.createDirectory(at: shadersDir, withIntermediateDirectories: true)
+
+        // Create a header file
+        let headerFile = shadersDir.appendingPathComponent("Common.h")
+        let headerContent = """
+        #ifndef COMMON_H
+        #define COMMON_H
+
+        struct VertexIn {
+            float3 position [[attribute(0)]];
+        };
+
+        #endif
+        """
+        try headerContent.write(to: headerFile, atomically: true, encoding: .utf8)
+
+        // Create a Metal file that includes the header
+        let metalFile = shadersDir.appendingPathComponent("Shader.metal")
+        let metalContent = """
+        #include <metal_stdlib>
+        using namespace metal;
+        #include "./Common.h"
+
+        vertex float4 vertexShader(VertexIn in [[stage_in]]) {
+            return float4(in.position, 1.0);
+        }
+        """
+        try metalContent.write(to: metalFile, atomically: true, encoding: .utf8)
+
+        defer {
+            try? FileManager.default.removeItem(at: projectDir)
+        }
+
+        // Open document
+        try sendMessage([
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": [
+                "textDocument": [
+                    "uri": metalFile.absoluteString,
+                    "languageId": "metal",
+                    "version": 1,
+                    "text": metalContent
+                ]
+            ]
+        ], to: inputPipe)
+
+        // Save document (triggers validation)
+        try sendMessage([
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": [
+                "textDocument": ["uri": metalFile.absoluteString]
+            ]
+        ], to: inputPipe)
+
+        // Read diagnostic notification
+        var foundDiagnostics = false
+        var diagnosticsCount = -1
+
+        for _ in 0..<5 {
+            if let message = try readMessage(from: outputPipe, timeout: 1.0),
+               let method = message["method"] as? String,
+               method == "textDocument/publishDiagnostics" {
+
+                guard let params = message["params"] as? [String: Any],
+                      let diagnostics = params["diagnostics"] as? [[String: Any]] else {
+                    continue
+                }
+
+                foundDiagnostics = true
+                diagnosticsCount = diagnostics.count
+
+                // Should have 0 diagnostics because the header file was found
+                #expect(diagnostics.isEmpty, "Should have no diagnostics when headers are found")
+                break
+            }
+        }
+
+        #expect(foundDiagnostics, "Should receive diagnostics notification")
+        #expect(diagnosticsCount == 0, "Should have 0 errors when include paths work correctly")
+    }
+
     @Test("Server shuts down gracefully")
     func shutdown() throws {
         let (process, inputPipe, outputPipe, _) = try startServer()
