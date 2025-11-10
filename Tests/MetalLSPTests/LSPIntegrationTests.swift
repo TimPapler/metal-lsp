@@ -121,8 +121,11 @@ struct LSPIntegrationTests {
 
   @Test("Server initializes correctly")
   func serverInitialize() throws {
-    let (process, inputPipe, outputPipe, _) = try startServer()
+    let (process, inputPipe, outputPipe, errorPipe) = try startServer()
     defer {
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
       if process.isRunning {
         process.terminate()
       }
@@ -176,8 +179,11 @@ struct LSPIntegrationTests {
 
   @Test("Completion provides Metal built-ins")
   func completion() throws {
-    let (process, inputPipe, outputPipe, _) = try startServer()
+    let (process, inputPipe, outputPipe, errorPipe) = try startServer()
     defer {
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
       if process.isRunning {
         process.terminate()
       }
@@ -249,8 +255,11 @@ struct LSPIntegrationTests {
 
   @Test("Diagnostics reports errors in Metal code")
   func diagnostics() throws {
-    let (process, inputPipe, outputPipe, _) = try startServer()
+    let (process, inputPipe, outputPipe, errorPipe) = try startServer()
     defer {
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
       if process.isRunning {
         process.terminate()
       }
@@ -351,8 +360,11 @@ struct LSPIntegrationTests {
 
   @Test("Diagnostics work with include files")
   func diagnosticsWithIncludes() throws {
-    let (process, inputPipe, outputPipe, _) = try startServer()
+    let (process, inputPipe, outputPipe, errorPipe) = try startServer()
     defer {
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
       if process.isRunning {
         process.terminate()
       }
@@ -473,8 +485,11 @@ struct LSPIntegrationTests {
 
   @Test("A server responds to shutdown request")
   func aShutdown() throws {
-    let (process, inputPipe, outputPipe, _) = try startServer()
+    let (process, inputPipe, outputPipe, errorPipe) = try startServer()
     defer {
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
       if process.isRunning {
         process.terminate()
       }
