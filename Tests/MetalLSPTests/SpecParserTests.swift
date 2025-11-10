@@ -6,17 +6,12 @@ import Testing
 @Suite("Metal Spec Parser Tests")
 struct SpecParserTests {
 
-  @Test("Parser can find function documentation")
+  @Test("Parser can find function documentation", .enabled(if: FileManager.default.fileExists(atPath: "metal-shading-language.md")))
   func findFunctionDoc() throws {
     // Find the spec file
     let fileManager = FileManager.default
     let currentDir = fileManager.currentDirectoryPath
     let specPath = "\(currentDir)/metal-shading-language.md"
-
-    guard fileManager.fileExists(atPath: specPath) else {
-      Issue.record("Spec file not found at: \(specPath)")
-      return
-    }
 
     let parser = try MetalSpecParser(specPath: specPath)
 
@@ -38,16 +33,11 @@ struct SpecParserTests {
     }
   }
 
-  @Test("Parser can find type documentation")
+  @Test("Parser can find type documentation", .enabled(if: FileManager.default.fileExists(atPath: "metal-shading-language.md")))
   func findTypeDoc() throws {
     let fileManager = FileManager.default
     let currentDir = fileManager.currentDirectoryPath
     let specPath = "\(currentDir)/metal-shading-language.md"
-
-    guard fileManager.fileExists(atPath: specPath) else {
-      Issue.record("Spec file not found at: \(specPath)")
-      return
-    }
 
     let parser = try MetalSpecParser(specPath: specPath)
 
@@ -67,16 +57,11 @@ struct SpecParserTests {
     }
   }
 
-  @Test("Parser caches results")
+  @Test("Parser caches results", .enabled(if: FileManager.default.fileExists(atPath: "metal-shading-language.md")))
   func cachingWorks() throws {
     let fileManager = FileManager.default
     let currentDir = fileManager.currentDirectoryPath
     let specPath = "\(currentDir)/metal-shading-language.md"
-
-    guard fileManager.fileExists(atPath: specPath) else {
-      Issue.record("Spec file not found at: \(specPath)")
-      return
-    }
 
     let parser = try MetalSpecParser(specPath: specPath)
 
@@ -103,16 +88,11 @@ struct SpecParserTests {
     }
   }
 
-  @Test("Parser generates proper markdown")
+  @Test("Parser generates proper markdown", .enabled(if: FileManager.default.fileExists(atPath: "metal-shading-language.md")))
   func markdownGeneration() throws {
     let fileManager = FileManager.default
     let currentDir = fileManager.currentDirectoryPath
     let specPath = "\(currentDir)/metal-shading-language.md"
-
-    guard fileManager.fileExists(atPath: specPath) else {
-      Issue.record("Spec file not found at: \(specPath)")
-      return
-    }
 
     let parser = try MetalSpecParser(specPath: specPath)
 
