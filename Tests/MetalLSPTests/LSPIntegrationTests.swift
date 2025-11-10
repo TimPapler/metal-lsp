@@ -484,9 +484,18 @@ struct LSPIntegrationTests {
             "params": NSNull()
         ], to: inputPipe)
 
-        // Wait for process to exit
-        process.waitUntilExit()
-        #expect(process.terminationStatus == 0)
+        // Wait for process to exit with timeout
+        let deadline = Date().addingTimeInterval(2.0)
+        while process.isRunning && Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+
+        if process.isRunning {
+            process.terminate()
+            Issue.record("Process did not exit in time")
+        } else {
+            #expect(process.terminationStatus == 0)
+        }
     }
 }
 
