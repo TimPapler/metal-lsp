@@ -9,7 +9,7 @@ struct JSONRPCMessage: Codable {
 
 /// JSON-RPC Request
 struct JSONRPCRequest: Codable {
-    let jsonrpc: String = "2.0"
+    let jsonrpc: String
     let id: RequestID
     let method: String
     let params: JSONValue?
@@ -17,22 +17,32 @@ struct JSONRPCRequest: Codable {
     enum CodingKeys: String, CodingKey {
         case jsonrpc, id, method, params
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.jsonrpc = try container.decode(String.self, forKey: .jsonrpc)
+        self.id = try container.decode(RequestID.self, forKey: .id)
+        self.method = try container.decode(String.self, forKey: .method)
+        self.params = try container.decodeIfPresent(JSONValue.self, forKey: .params)
+    }
 }
 
 /// JSON-RPC Response
 struct JSONRPCResponse: Codable {
-    let jsonrpc: String = "2.0"
+    let jsonrpc: String
     let id: RequestID?
     let result: JSONValue?
     let error: ResponseError?
 
     init(id: RequestID?, result: JSONValue) {
+        self.jsonrpc = "2.0"
         self.id = id
         self.result = result
         self.error = nil
     }
 
     init(id: RequestID?, error: ResponseError) {
+        self.jsonrpc = "2.0"
         self.id = id
         self.result = nil
         self.error = error
@@ -41,9 +51,26 @@ struct JSONRPCResponse: Codable {
 
 /// JSON-RPC Notification (no id, no response expected)
 struct JSONRPCNotification: Codable {
-    let jsonrpc: String = "2.0"
+    let jsonrpc: String
     let method: String
     let params: JSONValue?
+
+    init(method: String, params: JSONValue? = nil) {
+        self.jsonrpc = "2.0"
+        self.method = method
+        self.params = params
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.jsonrpc = try container.decode(String.self, forKey: .jsonrpc)
+        self.method = try container.decode(String.self, forKey: .method)
+        self.params = try container.decodeIfPresent(JSONValue.self, forKey: .params)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case jsonrpc, method, params
+    }
 }
 
 /// Response error

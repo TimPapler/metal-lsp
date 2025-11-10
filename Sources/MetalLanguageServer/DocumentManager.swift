@@ -37,7 +37,7 @@ class DocumentManager {
     /// Close a document
     func closeDocument(uri: String) {
         queue.sync {
-            documents.removeValue(forKey: uri)
+            _ = documents.removeValue(forKey: uri)
         }
     }
 

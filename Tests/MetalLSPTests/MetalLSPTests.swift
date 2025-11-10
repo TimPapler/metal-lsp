@@ -1,45 +1,53 @@
-import XCTest
+import Testing
+import Foundation
 @testable import MetalLanguageServer
 @testable import MetalCore
 
-final class MetalLSPTests: XCTestCase {
+@Suite("Metal LSP Unit Tests")
+struct MetalLSPTests {
 
-    func testMetalBuiltinsNotEmpty() {
+    @Test("Metal built-ins are not empty")
+    func metalBuiltinsNotEmpty() {
         let completions = MetalBuiltins.getAllCompletions()
-        XCTAssertFalse(completions.isEmpty, "Built-ins should not be empty")
+        #expect(!completions.isEmpty, "Built-ins should not be empty")
     }
 
-    func testMetalBuiltinsContainsFloat4() {
+    @Test("Metal built-ins contain float4")
+    func metalBuiltinsContainsFloat4() {
         let completions = MetalBuiltins.getAllCompletions()
         let hasFloat4 = completions.contains { $0.label == "float4" }
-        XCTAssertTrue(hasFloat4, "Built-ins should contain float4 type")
+        #expect(hasFloat4, "Built-ins should contain float4 type")
     }
 
-    func testMetalBuiltinsContainsKernelKeyword() {
-        XCTAssertTrue(MetalBuiltins.keywords.contains("kernel"))
-        XCTAssertTrue(MetalBuiltins.keywords.contains("vertex"))
-        XCTAssertTrue(MetalBuiltins.keywords.contains("fragment"))
+    @Test("Metal built-ins contain kernel keywords")
+    func metalBuiltinsContainsKernelKeyword() {
+        #expect(MetalBuiltins.keywords.contains("kernel"))
+        #expect(MetalBuiltins.keywords.contains("vertex"))
+        #expect(MetalBuiltins.keywords.contains("fragment"))
     }
 
-    func testPositionEquality() {
+    @Test("Position equality works correctly")
+    func positionEquality() {
         let pos1 = Position(line: 5, character: 10)
         let pos2 = Position(line: 5, character: 10)
         let pos3 = Position(line: 5, character: 11)
 
-        XCTAssertEqual(pos1, pos2)
-        XCTAssertNotEqual(pos1, pos3)
+        #expect(pos1 == pos2)
+        #expect(pos1 != pos3)
     }
 
-    func testRangeCreation() {
+    @Test("Range creation works correctly")
+    func rangeCreation() {
         let start = Position(line: 0, character: 0)
         let end = Position(line: 0, character: 5)
         let range = Range(start: start, end: end)
 
-        XCTAssertEqual(range.start, start)
-        XCTAssertEqual(range.end, end)
+        #expect(range.start == start)
+        #expect(range.end == end)
     }
 
-    func testDocumentManager() {
+    @Test("Document manager opens and closes documents")
+    func documentManager() {
         let manager = DocumentManager()
         let uri = "file:///test.metal"
         let text = "kernel void test() {}"
@@ -47,16 +55,17 @@ final class MetalLSPTests: XCTestCase {
         manager.openDocument(uri: uri, text: text, version: 1)
 
         let doc = manager.getDocument(uri: uri)
-        XCTAssertNotNil(doc)
-        XCTAssertEqual(doc?.text, text)
-        XCTAssertEqual(doc?.version, 1)
+        #expect(doc != nil)
+        #expect(doc?.text == text)
+        #expect(doc?.version == 1)
 
         manager.closeDocument(uri: uri)
         let closedDoc = manager.getDocument(uri: uri)
-        XCTAssertNil(closedDoc)
+        #expect(closedDoc == nil)
     }
 
-    func testDocumentLineAccess() {
+    @Test("Document line access works correctly")
+    func documentLineAccess() {
         let manager = DocumentManager()
         let uri = "file:///test.metal"
         let text = "line 0\nline 1\nline 2"
@@ -64,25 +73,27 @@ final class MetalLSPTests: XCTestCase {
         manager.openDocument(uri: uri, text: text, version: 1)
 
         let doc = manager.getDocument(uri: uri)
-        XCTAssertEqual(doc?.line(at: 0), "line 0")
-        XCTAssertEqual(doc?.line(at: 1), "line 1")
-        XCTAssertEqual(doc?.line(at: 2), "line 2")
-        XCTAssertNil(doc?.line(at: 3))
+        #expect(doc?.line(at: 0) == "line 0")
+        #expect(doc?.line(at: 1) == "line 1")
+        #expect(doc?.line(at: 2) == "line 2")
+        #expect(doc?.line(at: 3) == nil)
     }
 
-    func testJSONValueEncoding() throws {
+    @Test("JSONValue encoding and decoding")
+    func jsonValueEncoding() throws {
         let value = JSONValue.string("test")
         let encoded = try JSONEncoder().encode(value)
         let decoded = try JSONDecoder().decode(JSONValue.self, from: encoded)
 
         if case .string(let str) = decoded {
-            XCTAssertEqual(str, "test")
+            #expect(str == "test")
         } else {
-            XCTFail("Expected string value")
+            Issue.record("Expected string value")
         }
     }
 
-    func testRequestIDEncoding() throws {
+    @Test("RequestID encoding and decoding")
+    func requestIDEncoding() throws {
         let stringID = RequestID.string("test-123")
         let numberID = RequestID.number(42)
 
@@ -92,7 +103,7 @@ final class MetalLSPTests: XCTestCase {
         let decodedString = try JSONDecoder().decode(RequestID.self, from: stringData)
         let decodedNumber = try JSONDecoder().decode(RequestID.self, from: numberData)
 
-        XCTAssertEqual(decodedString, stringID)
-        XCTAssertEqual(decodedNumber, numberID)
+        #expect(decodedString == stringID)
+        #expect(decodedNumber == numberID)
     }
 }

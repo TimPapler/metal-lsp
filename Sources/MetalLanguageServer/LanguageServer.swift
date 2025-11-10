@@ -48,7 +48,12 @@ public class LanguageServer {
             return
         }
 
-        log("Failed to decode message")
+        // Log what we couldn't decode
+        if let jsonString = String(data: data, encoding: .utf8) {
+            log("Failed to decode message: \(jsonString)")
+        } else {
+            log("Failed to decode message (invalid UTF-8)")
+        }
     }
 
     private func handleRequest(_ request: JSONRPCRequest) throws {
@@ -62,7 +67,7 @@ public class LanguageServer {
                 try sendResponse(id: request.id, result: result)
 
             case "shutdown":
-                try handleShutdown()
+                handleShutdown()
                 try sendResponse(id: request.id, result: JSONValue.null)
 
             case "textDocument/completion":
@@ -246,14 +251,25 @@ public class LanguageServer {
     // MARK: - Diagnostics
 
     private func validateDocument(uri: String) throws {
-        guard let document = documentManager.getDocument(uri: uri) else {
-            return
+        // Get document text from manager or read from disk
+        let documentText: String
+        if let document = documentManager.getDocument(uri: uri) {
+            documentText = document.text
+        } else {
+            // Fallback: read from disk
+            guard let url = URL(string: uri),
+                  url.isFileURL,
+                  let text = try? String(contentsOf: url, encoding: .utf8) else {
+                log("Cannot validate document: not in manager and cannot read from disk: \(uri)")
+                return
+            }
+            documentText = text
         }
 
         log("Validating document: \(uri)")
 
         // Compile with Metal compiler
-        let metalDiagnostics = metalCompiler.compile(source: document.text, uri: uri)
+        let metalDiagnostics = metalCompiler.compile(source: documentText, uri: uri)
 
         // Convert to LSP diagnostics
         let diagnostics = metalDiagnostics.map { diag -> Diagnostic in

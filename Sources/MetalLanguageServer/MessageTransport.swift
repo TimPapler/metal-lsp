@@ -99,8 +99,8 @@ class MessageTransport {
         while true {
             // Check if we have a complete line in buffer
             if let newlineRange = buffer.range(of: "\r\n".data(using: .utf8)!) {
-                let lineData = buffer.subdata(in: 0..<newlineRange.lowerBound)
-                buffer.removeSubrange(0..<newlineRange.upperBound)
+                let lineData = buffer.subdata(in: buffer.startIndex..<newlineRange.lowerBound)
+                buffer.removeSubrange(buffer.startIndex..<newlineRange.upperBound)
 
                 if let line = String(data: lineData, encoding: .utf8) {
                     return line
@@ -140,7 +140,7 @@ class MessageTransport {
 
             // Put back any extra bytes
             if chunk.count > bytesToTake {
-                buffer.insert(contentsOf: chunk.suffix(from: bytesToTake), at: 0)
+                buffer.insert(contentsOf: chunk.suffix(from: bytesToTake), at: buffer.startIndex)
             }
         }
 
