@@ -167,6 +167,7 @@ struct LSPIntegrationTests {
 
     #expect(capabilities["completionProvider"] != nil)
     #expect(capabilities["textDocumentSync"] != nil)
+    #expect(capabilities["hoverProvider"] as? Bool == true)
 
     // Send initialized notification
     let initializedNotification: [String: Any] = [
@@ -481,6 +482,114 @@ struct LSPIntegrationTests {
 
     #expect(foundDiagnostics, "Should receive diagnostics notification")
     #expect(diagnosticsCount == 0, "Should have 0 errors when include paths work correctly")
+  }
+
+  @Test("Hover provides documentation for Metal built-ins")
+  func hover() throws {
+    let (process, inputPipe, outputPipe, errorPipe) = try startServer()
+    defer {
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
+      if process.isRunning {
+        process.terminate()
+      }
+    }
+
+    // Initialize
+    try sendMessage(
+      [
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": [
+          "processId": NSNull(),
+          "rootUri": "file:///tmp/test",
+          "capabilities": [:],
+        ],
+      ], to: inputPipe)
+    _ = try readMessage(from: outputPipe)
+
+    try sendMessage(
+      [
+        "jsonrpc": "2.0",
+        "method": "initialized",
+        "params": [:],
+      ], to: inputPipe)
+
+    // Open document with Metal code
+    try sendMessage(
+      [
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": [
+          "textDocument": [
+            "uri": "file:///tmp/test.metal",
+            "languageId": "metal",
+            "version": 1,
+            "text":
+              "#include <metal_stdlib>\nusing namespace metal;\n\nkernel void test() {\n    float4 color = normalize(float4(1.0));\n}\n",
+          ]
+        ],
+      ], to: inputPipe)
+
+    // Request hover on "normalize" at line 4, character 19
+    try sendMessage(
+      [
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "textDocument/hover",
+        "params": [
+          "textDocument": ["uri": "file:///tmp/test.metal"],
+          "position": ["line": 4, "character": 19],
+        ],
+      ], to: inputPipe)
+
+    guard let response = try readResponse(withId: 2, from: outputPipe) else {
+      Issue.record("No hover response")
+      return
+    }
+
+    #expect(response["id"] as? Int == 2)
+
+    // Check if there's an error
+    if let error = response["error"] as? [String: Any] {
+      Issue.record("Hover returned error: \(error)")
+      return
+    }
+
+    // Result can be null (no hover info) or a Hover object
+    guard response["result"] != nil else {
+      Issue.record("No result field in hover response")
+      return
+    }
+
+    // If result is NSNull, that means no hover info - this is valid but not what we want
+    if response["result"] is NSNull {
+      Issue.record("Hover returned null - word not found or document not loaded")
+      return
+    }
+
+    guard let result = response["result"] as? [String: Any] else {
+      Issue.record("Result is not a dictionary: \(type(of: response["result"]))")
+      return
+    }
+
+    guard let contents = result["contents"] as? [String: Any] else {
+      Issue.record("No contents in hover result")
+      return
+    }
+
+    #expect(contents["kind"] as? String == "markdown")
+
+    guard let value = contents["value"] as? String else {
+      Issue.record("No value in hover contents")
+      return
+    }
+
+    // Should contain the function signature and documentation
+    #expect(value.contains("normalize"))
+    #expect(value.contains("vector"))
   }
 
   @Test("A server responds to shutdown request")
