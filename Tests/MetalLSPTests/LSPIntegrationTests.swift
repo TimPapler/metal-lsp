@@ -10,6 +10,55 @@ import Testing
 @Suite("LSP Integration Tests", .serialized)
 struct LSPIntegrationTests {
 
+  // MARK: - Server Handle
+
+  /// Handles server lifecycle with automatic cleanup via deinit
+  final class ServerHandle {
+    let process: Process
+    let inputPipe: Pipe
+    let outputPipe: Pipe
+    let errorPipe: Pipe
+
+    init() throws {
+      self.inputPipe = Pipe()
+      self.outputPipe = Pipe()
+      self.errorPipe = Pipe()
+      self.process = Process()
+
+      // Find the metal-lsp binary
+      let binaryPath: String
+      if FileManager.default.fileExists(atPath: ".build/release/metal-lsp") {
+        binaryPath = ".build/release/metal-lsp"
+      } else if FileManager.default.fileExists(atPath: ".build/debug/metal-lsp") {
+        binaryPath = ".build/debug/metal-lsp"
+      } else {
+        throw TestError.binaryNotFound
+      }
+
+      process.executableURL = URL(fileURLWithPath: binaryPath)
+      process.standardInput = inputPipe
+      process.standardOutput = outputPipe
+      process.standardError = errorPipe
+
+      try process.run()
+
+      // Give the server a moment to start
+      Thread.sleep(forTimeInterval: 0.1)
+    }
+
+    deinit {
+      // Close pipes first to prevent SIGPIPE
+      try? inputPipe.fileHandleForWriting.close()
+      try? outputPipe.fileHandleForReading.close()
+      try? errorPipe.fileHandleForReading.close()
+
+      // Then terminate process
+      if process.isRunning {
+        process.terminate()
+      }
+    }
+  }
+
   // MARK: - Helper Methods
 
   func startServer() throws -> (
