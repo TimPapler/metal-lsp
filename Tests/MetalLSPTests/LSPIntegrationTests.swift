@@ -471,8 +471,8 @@ struct LSPIntegrationTests {
     #expect(diagnosticsCount == 0, "Should have 0 errors when include paths work correctly")
   }
 
-  @Test("Server responds to shutdown request")
-  func shutdown() throws {
+  @Test("A server responds to shutdown request")
+  func aShutdown() throws {
     let (process, inputPipe, outputPipe, _) = try startServer()
     defer {
       if process.isRunning {
